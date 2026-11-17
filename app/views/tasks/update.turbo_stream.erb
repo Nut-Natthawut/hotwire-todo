@@ -1,0 +1,5 @@
+<%# 1) Swap the whole row (task_1) for the updated one — also closes the inline edit form. %>
+<%= turbo_stream.replace dom_id(@task), partial: "tasks/task", locals: { task: @task } %>
+
+<%# 2) Redraw the badge and numbers inside <div id="task_summary">. %>
+<%= turbo_stream.update "task_summary", partial: "tasks/summary" %>

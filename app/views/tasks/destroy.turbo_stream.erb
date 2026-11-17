@@ -1,0 +1,5 @@
+<%# 1) Remove the row (task_1). %>
+<%= turbo_stream.remove dom_id(@task) %>
+
+<%# 2) Redraw the badge and numbers inside <div id="task_summary">. %>
+<%= turbo_stream.update "task_summary", partial: "tasks/summary" %>

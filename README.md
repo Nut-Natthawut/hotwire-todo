@@ -575,7 +575,7 @@ def create
   @task = Task.new(task_params)
   if @task.save
     respond_to do |format|
-      format.turbo_stream                                              # create.turbo_stream.erb
+      format.turbo_stream { render :create }  # create.turbo_stream.erb
       format.html { redirect_to tasks_path, notice: "Task created." }
     end
   else
@@ -586,7 +586,7 @@ end
 def update
   if @task.update(task_params)
     respond_to do |format|
-      format.turbo_stream                                              # update.turbo_stream.erb
+      format.turbo_stream { render :update }  # update.turbo_stream.erb
       format.html { redirect_to tasks_path, notice: "Task updated." }
     end
   else
@@ -597,7 +597,7 @@ end
 def destroy
   @task.destroy!
   respond_to do |format|
-    format.turbo_stream                                                # destroy.turbo_stream.erb
+    format.turbo_stream { render :destroy } # destroy.turbo_stream.erb
     format.html { redirect_to tasks_path, notice: "Task deleted.", status: :see_other }
   end
 end

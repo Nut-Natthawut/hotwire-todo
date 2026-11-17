@@ -15,7 +15,12 @@ class TasksController < ApplicationController
   def create
     @task = Task.new(task_params)
     if @task.save
-      redirect_to tasks_path, notice: "Task created."
+      respond_to do |format|
+        # From Turbo: render create.turbo_stream.erb (add the row + refresh the numbers).
+        format.turbo_stream { render :create }
+        # Without JavaScript: normal redirect.
+        format.html { redirect_to tasks_path, notice: "Task created." }
+      end
     else
       render :new, status: :unprocessable_entity
     end
@@ -23,7 +28,10 @@ class TasksController < ApplicationController
 
   def update
     if @task.update(task_params)
-      redirect_to tasks_path, notice: "Task updated."
+      respond_to do |format|
+        format.turbo_stream { render :update } # update.turbo_stream.erb
+        format.html { redirect_to tasks_path, notice: "Task updated." }
+      end
     else
       render :edit, status: :unprocessable_entity
     end
@@ -31,7 +39,10 @@ class TasksController < ApplicationController
 
   def destroy
     @task.destroy!
-    redirect_to tasks_path, notice: "Task deleted.", status: :see_other
+    respond_to do |format|
+      format.turbo_stream { render :destroy } # destroy.turbo_stream.erb
+      format.html { redirect_to tasks_path, notice: "Task deleted.", status: :see_other }
+    end
   end
 
   private
