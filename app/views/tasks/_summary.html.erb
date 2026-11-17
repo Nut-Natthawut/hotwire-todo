@@ -1,0 +1,14 @@
+<% stats = task_stats %>
+<div class="mt-4 flex items-center justify-between">
+  <h2 class="text-2xl font-semibold">My Tasks</h2>
+  <span class="pill bg-green-100 text-green-700"><%= pluralize(stats[:total], "Task") %></span>
+</div>
+
+<dl class="mt-6 grid grid-cols-3">
+  <% { "Total" => stats[:total], "Todo" => stats[:todo], "Done" => stats[:done] }.each do |label, count| %>
+    <div class="flex flex-col-reverse gap-2 px-4">
+      <dt class="text-gray-500"><%= label %></dt>
+      <dd class="text-3xl font-semibold"><%= count %></dd>
+    </div>
+  <% end %>
+</dl>

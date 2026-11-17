@@ -148,6 +148,24 @@ docker compose exec web bin/rails db:seed
 >
 > **Turbo Drive (บท 6):** ได้มาฟรีเพราะ `application.js` import `@hotwired/turbo-rails` อยู่แล้ว ลิงก์และฟอร์มทุกอันจะเปลี่ยนหน้าแบบไม่กระพริบ
 
+**สร้าง controller ด้วย generator:**
+
+```bash
+docker compose exec web bin/rails generate controller Tasks index --skip-routes
+```
+
+| ไฟล์ที่ได้ | ข้างใน |
+| --- | --- |
+| `app/controllers/tasks_controller.rb` | `TasksController` ที่มี `def index` ว่าง ๆ |
+| `app/views/tasks/index.html.erb` | หน้าตัวอย่าง (ลบเนื้อหาแล้วใส่ของเราแทน) |
+| `app/helpers/tasks_helper.rb` | `module TasksHelper` ว่าง ๆ |
+
+- **ชื่อเป็นพหูพจน์ (`Tasks`):** ได้ `TasksController` ซึ่งตรงกับ `resources :tasks`
+- **`--skip-routes`:** ไม่ให้ generator เพิ่ม `get "tasks/index"` ลงใน routes เพราะเราเขียน routes เอง (ถ้าลืมใส่ ให้ลบบรรทัดนั้นออก)
+- **ใส่แค่ `index`:** action อื่นค่อยเพิ่มใน Step 3 ถ้าใส่ตอนนี้จะได้ view ว่าง ๆ ที่ยังไม่ได้ใช้
+
+ไฟล์ที่เหลือใน Step นี้ไม่มี generator ต้องแก้หรือสร้างเอง: `config/routes.rb`, layout, `_summary.html.erb`, `_task.html.erb` และ CSS
+
 ```ruby
 # config/routes.rb
 Rails.application.routes.draw do
@@ -160,7 +178,7 @@ end
 ```
 
 ```ruby
-# app/controllers/tasks_controller.rb
+# app/controllers/tasks_controller.rb (เติมใน index ที่ generator สร้างไว้)
 class TasksController < ApplicationController
   def index
     @tasks = Task.ordered
@@ -168,7 +186,7 @@ class TasksController < ApplicationController
 end
 ```
 
-**Helper:** นับสถิติ, ไอคอน และ pill ตามสถานะ
+**Helper** (เติมใน module ที่ generator สร้างไว้): นับสถิติ, ไอคอน และ pill ตามสถานะ
 
 ```ruby
 # app/helpers/tasks_helper.rb
@@ -225,7 +243,7 @@ end
 **View:**
 
 ```erb
-<%# app/views/tasks/index.html.erb %>
+<%# app/views/tasks/index.html.erb (ลบของเดิมที่ generator ใส่มาทั้งหมด) %>
 <% content_for :title, "My Tasks" %>
 
 <div class="rounded-2xl border bg-white p-6">
@@ -243,7 +261,7 @@ end
 ```
 
 ```erb
-<%# app/views/tasks/_summary.html.erb %>
+<%# app/views/tasks/_summary.html.erb (สร้างไฟล์ใหม่) %>
 <% stats = task_stats %>
 <div class="mt-4 flex items-center justify-between">
   <h2 class="text-2xl font-semibold">My Tasks</h2>
@@ -263,7 +281,7 @@ end
 - `flex-col-reverse` ให้ตัวเลขอยู่บน label อยู่ล่างตามภาพ แต่ใน HTML `<dt>` (หัวข้อ) ยังมาก่อน `<dd>` (ค่า) ตามหลัก
 
 ```erb
-<%# app/views/tasks/_task.html.erb %>
+<%# app/views/tasks/_task.html.erb (สร้างไฟล์ใหม่) %>
 <div id="<%= dom_id(task) %>" class="flex items-center gap-3 py-2">
   <%= status_icon(task) %>
   <span class="flex-1 text-lg <%= "line-through" if task.done? %>"><%= task.title %></span>
@@ -290,7 +308,13 @@ end
 }
 ```
 
-> **✅ ตรวจผล:** เปิด http://localhost:3000 หน้าตาเหมือนภาพ ตัวเลข 3 / 2 / 1 และ badge "3 Tasks"
+> **✅ ตรวจผล:** เปิด http://localhost:3000 แล้วควรเห็น
+>
+> - การ์ด "My Tasks" กับ badge "3 Tasks"
+> - สถิติ 3 / 2 / 1 (Total / Todo / Done)
+> - งาน 3 แถว: วงกลมเทา + pill Todo, วงกลมเทา + pill Doing, ติ๊กเขียว + ชื่อขีดฆ่า + pill Done สีเขียว
+>
+> ถ้าหน้าไม่มีสี ให้ดู log ของ `docker compose up` ว่า process `css` build ผ่านหรือเปล่า
 
 ---
 

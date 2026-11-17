@@ -1,0 +1,14 @@
+<% content_for :title, "My Tasks" %>
+
+<div class="rounded-2xl border bg-white p-6">
+  <p class="text-lg font-medium">Todo Management UI</p>
+
+  <div id="task_summary"><%= render "tasks/summary" %></div>
+
+  <hr class="my-6">
+
+  <h3 class="mb-3 text-lg font-medium">Task List</h3>
+  <div id="tasks" class="flex flex-col gap-1">
+    <%= render @tasks %>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+<div id="<%= dom_id(task) %>" class="flex items-center gap-3 py-2">
+  <%= status_icon(task) %>
+  <span class="flex-1 text-lg <%= "line-through" if task.done? %>"><%= task.title %></span>
+  <%= status_pill(task) %>
+</div>
