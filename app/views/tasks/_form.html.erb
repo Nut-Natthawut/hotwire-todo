@@ -1,0 +1,25 @@
+<%= form_with model: task, class: "space-y-4" do |form| %>
+  <% if task.errors.any? %>
+    <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <% task.errors.full_messages.each do |message| %>
+        <p><%= message %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, class: "form-label" %>
+    <%= form.text_field :title, class: "form-input", autofocus: true %>
+  </div>
+
+  <div>
+    <%= form.label :status, class: "form-label" %>
+    <%= form.select :status, Task.statuses.keys.map { |s| [ s.humanize, s ] }, {}, class: "form-input" %>
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <%= link_to "Cancel", tasks_path, class: "btn" %>
+    <%= form.submit task.new_record? ? "Add task" : "Save", class: "btn",
+          data: { turbo_submits_with: "Saving..." } %>
+  </div>
+<% end %>
