@@ -2,5 +2,8 @@
 
 <div class="rounded-2xl border bg-white p-6">
   <h1 class="mb-4 text-xl font-semibold">New task</h1>
-  <%= render "form", task: @task %>
+  <%# Same frame id as index.html.erb: Turbo takes only this part when loaded into the frame. %>
+  <%= turbo_frame_tag "new_task" do %>
+    <%= render partial: "tasks/form", locals: { task: @task } %>
+  <% end %>
 </div>

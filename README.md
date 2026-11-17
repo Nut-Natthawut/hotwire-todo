@@ -20,6 +20,17 @@
 >
 > คำสั่ง `bin/rails` / `yarn` ทุกคำสั่งรันผ่าน `docker compose exec web ...` ขณะที่ `docker compose up` เปิดอยู่
 
+> **เขียนแบบเต็ม ไม่ใช้ shortcut ("Rails magic"):** โค้ดในเอกสารนี้บอกชื่อไฟล์และตัวแปรตรง ๆ ทุกครั้ง อ่านแล้วรู้ทันทีว่ามาจากไหน
+>
+> | Shortcut (ไม่ใช้) | แบบเต็มที่ใช้ในโปรเจกต์นี้ |
+> | --- | --- |
+> | `render "form", task: @task` | `render partial: "tasks/form", locals: { task: @task }` |
+> | `render @tasks` | `render partial: "tasks/task", collection: @tasks, as: :task` |
+> | `form_with model: task` (เดา URL เอง) | `form_with model: task, url: url, method: method` |
+> | `turbo_stream.replace @task` | `turbo_stream.replace dom_id(@task), partial: "tasks/task", locals: { task: @task }` |
+>
+> **partial:** ไฟล์ view ชิ้นเล็กที่ชื่อขึ้นต้นด้วย `_` เวลาเรียกไม่ต้องใส่ `_` และนามสกุล เช่น `"tasks/form"` คือไฟล์ `app/views/tasks/_form.html.erb`
+
 ## สารบัญ
 
 | Step | ทำอะไร | หัวข้อใน docs |
@@ -249,13 +260,13 @@ end
 <div class="rounded-2xl border bg-white p-6">
   <p class="text-lg font-medium">Todo Management UI</p>
 
-  <div id="task_summary"><%= render "tasks/summary" %></div>
+  <div id="task_summary"><%= render partial: "tasks/summary" %></div>
 
   <hr class="my-6">
 
   <h3 class="mb-3 text-lg font-medium">Task List</h3>
   <div id="tasks" class="flex flex-col gap-1">
-    <%= render @tasks %>
+    <%= render partial: "tasks/task", collection: @tasks, as: :task %>
   </div>
 </div>
 ```
@@ -291,7 +302,9 @@ end
 
 - **`id="task_summary"`** อยู่ใน index ส่วน partial มีแค่เนื้อหาข้างใน เพราะ Step 5 จะใช้ stream `update` แทนที่เฉพาะข้างใน
 - **`id="tasks"`** เป็นที่ที่ Step 5 `append` งานใหม่ต่อท้าย
-- **`render @tasks`** render `_task` ทีละรายการ
+- **`render partial: "tasks/task", collection: @tasks, as: :task`** render ไฟล์ `app/views/tasks/_task.html.erb` ทีละงานใน `@tasks`
+  - `as: :task` = ข้างใน `_task` เรียกงานแต่ละอันด้วยตัวแปรชื่อ `task`
+- **`render partial: "tasks/summary"`** render ไฟล์ `app/views/tasks/_summary.html.erb` ครั้งเดียว
 
 **CSS:**
 
@@ -384,7 +397,12 @@ end
 
 ```erb
 <%# app/views/tasks/_form.html.erb %>
-<%= form_with model: task, class: "space-y-4" do |form| %>
+<%# New task → POST /tasks (create). Existing task → PATCH /tasks/:id (update). %>
+<% url    = task.new_record? ? tasks_path : task_path(task) %>
+<% method = task.new_record? ? :post : :patch %>
+
+<%# model: fills the fields with task's values and names them task[title], task[status]. %>
+<%= form_with model: task, url: url, method: method, class: "space-y-4" do |form| %>
   <% if task.errors.any? %>
     <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       <% task.errors.full_messages.each do |message| %>
@@ -411,6 +429,13 @@ end
 <% end %>
 ```
 
+- **ฟอร์มเดียวใช้ทั้ง New และ Edit:** `task.new_record?` เป็น `true` เมื่อยังไม่เคยบันทึก (มาจาก `new`)
+  | มาจาก | `url` | `method` | ไปที่ controller |
+  | --- | --- | --- | --- |
+  | New | `/tasks` | POST | `TasksController#create` |
+  | Edit | `/tasks/1` | PATCH | `TasksController#update` |
+- **`model: task`:** ใช้เติมค่าเดิมลงช่องกรอก และตั้งชื่อช่องเป็น `task[title]`, `task[status]` ให้ตรงกับ `params.require(:task)` ใน controller
+- **ปุ่ม submit:** ข้อความเป็น "Add task" หรือ "Save" ตาม `task.new_record?`
 - **`turbo_submits_with`:** ระหว่าง submit ปุ่มเปลี่ยนเป็น "Saving..." และถูก disable
 
 ```erb
@@ -419,7 +444,7 @@ end
 
 <div class="rounded-2xl border bg-white p-6">
   <h1 class="mb-4 text-xl font-semibold">New task</h1>
-  <%= render "form", task: @task %>
+  <%= render partial: "tasks/form", locals: { task: @task } %>
 </div>
 ```
 
@@ -469,14 +494,14 @@ end
 <%= turbo_frame_tag "new_task", class: "mb-4 block" %>   <%# ว่างไว้ รอรับฟอร์ม %>
 
 <div id="tasks" class="flex flex-col gap-1">
-  <%= render @tasks %>
+  <%= render partial: "tasks/task", collection: @tasks, as: :task %>
 </div>
 ```
 
 ```erb
 <%# new.html.erb: ห่อฟอร์มด้วย frame id เดียวกัน %>
 <%= turbo_frame_tag "new_task" do %>
-  <%= render "form", task: @task %>
+  <%= render partial: "tasks/form", locals: { task: @task } %>
 <% end %>
 ```
 
@@ -496,7 +521,7 @@ end
 ```erb
 <%# edit.html.erb: ห่อฟอร์มด้วย frame id ของงานนั้น %>
 <%= turbo_frame_tag dom_id(@task) do %>
-  <%= render "form", task: @task %>
+  <%= render partial: "tasks/form", locals: { task: @task } %>
 <% end %>
 ```
 
@@ -504,6 +529,17 @@ end
 - ลิงก์ Edit อยู่**ใน** frame จึงโหลดฟอร์มมาแทนแถวนั้นเอง
 - **Cancel** (`link_to tasks_path`) ใน frame จะโหลดหน้า index แล้วหยิบ frame id เดียวกันกลับมา จึงกลับเป็นแถวเดิมหรือ frame ว่างโดยไม่ต้องเขียนอะไรเพิ่ม
 - ถ้า id ไม่ตรงกัน จะเห็น **"Content missing"**
+
+**3) Delete: Breaking out ออกจาก frame**
+
+```erb
+<%# _task.html.erb %>
+<%= button_to "Delete", task_path(task), method: :delete,
+      form: { data: { turbo_confirm: "Delete \"#{task.title}\"?", turbo_frame: "_top" } } %>
+```
+
+- ปุ่ม Delete อยู่ใน frame `task_1` ถ้าไม่ใส่อะไร Turbo จะหา `task_1` ใน response แต่งานถูกลบไปแล้ว เลยเจอ **"Content missing"**
+- `turbo_frame: "_top"` บอกให้เปลี่ยนทั้งหน้าแทน (บท 7 Navigate ออกนอก frame)
 
 > **⚠️ สิ่งที่จะเจอ (ตั้งใจ):**
 >
@@ -573,24 +609,25 @@ end
 
 ```erb
 <%# app/views/tasks/create.turbo_stream.erb %>
-<%= turbo_stream.append "tasks", @task %>
+<%= turbo_stream.append "tasks", partial: "tasks/task", locals: { task: @task } %>
 <%= turbo_stream.update "task_summary", partial: "tasks/summary" %>
 ```
 
 ```erb
 <%# app/views/tasks/update.turbo_stream.erb %>
-<%= turbo_stream.replace @task %>
+<%= turbo_stream.replace dom_id(@task), partial: "tasks/task", locals: { task: @task } %>
 <%= turbo_stream.update "task_summary", partial: "tasks/summary" %>
 ```
 
 ```erb
 <%# app/views/tasks/destroy.turbo_stream.erb %>
-<%= turbo_stream.remove @task %>
+<%= turbo_stream.remove dom_id(@task) %>
 <%= turbo_stream.update "task_summary", partial: "tasks/summary" %>
 ```
 
-- **`append "tasks", @task`** render `_task` ของงานใหม่ แล้วต่อท้าย `<div id="tasks">`
-- **`replace @task`** หา `#task_1` แล้วแทนทั้ง element ด้วย `_task` ใหม่ (แถวกลับมาจากฟอร์ม Edit ด้วย)
+- **`append "tasks", partial: "tasks/task", locals: { task: @task }`** render `_task.html.erb` ของงานใหม่ แล้วต่อท้าย `<div id="tasks">`
+- **`replace dom_id(@task), partial: ...`** หา element `task_1` แล้วแทนทั้งก้อนด้วย `_task` ใหม่ (แถวกลับมาจากฟอร์ม Edit ด้วย)
+- **`remove dom_id(@task)`** ลบ element `task_1` ออก
 - **`update` vs `replace`:** `update` เปลี่ยนแค่**ข้างใน** `#task_summary` ตัว div ยังอยู่ จึงอัปเดตซ้ำได้เรื่อย ๆ
 
 **ปุ่มวงกลมเปลี่ยนสถานะ:** เปลี่ยน `status_icon` ใน `_task` เป็นปุ่ม
@@ -648,8 +685,12 @@ export default class extends Controller {
 
 ```erb
 <%# _form.html.erb %>
-<%= form_with model: task, class: "space-y-4",
-      data: (task.new_record? ? { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" } : {}) do |form| %>
+<% url    = task.new_record? ? tasks_path : task_path(task) %>
+<% method = task.new_record? ? :post : :patch %>
+<%# Only the new-task form clears itself after saving. %>
+<% data   = task.new_record? ? { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" } : {} %>
+
+<%= form_with model: task, url: url, method: method, data: data, class: "space-y-4" do |form| %>
 
   <% if task.errors.any? %>
     <div role="alert" data-reset-form-target="errors" class="...">

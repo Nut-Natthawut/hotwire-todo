@@ -1,4 +1,9 @@
-<%= form_with model: task, class: "space-y-4" do |form| %>
+<%# New task → POST /tasks (create). Existing task → PATCH /tasks/:id (update). %>
+<% url    = task.new_record? ? tasks_path : task_path(task) %>
+<% method = task.new_record? ? :post : :patch %>
+
+<%# model: fills the fields with task's values and names them task[title], task[status]. %>
+<%= form_with model: task, url: url, method: method, class: "space-y-4" do |form| %>
   <% if task.errors.any? %>
     <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       <% task.errors.full_messages.each do |message| %>
