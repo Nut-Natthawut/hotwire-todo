@@ -1,11 +1,13 @@
 <%# New task → POST /tasks (create). Existing task → PATCH /tasks/:id (update). %>
 <% url    = task.new_record? ? tasks_path : task_path(task) %>
 <% method = task.new_record? ? :post : :patch %>
+<%# Only the new-task form clears itself after saving (Stimulus reset_form_controller.js). %>
+<% data   = task.new_record? ? { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" } : {} %>
 
 <%# model: fills the fields with task's values and names them task[title], task[status]. %>
-<%= form_with model: task, url: url, method: method, class: "space-y-4" do |form| %>
+<%= form_with model: task, url: url, method: method, data: data, class: "space-y-4" do |form| %>
   <% if task.errors.any? %>
-    <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div role="alert" data-reset-form-target="errors" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       <% task.errors.full_messages.each do |message| %>
         <p><%= message %></p>
       <% end %>
