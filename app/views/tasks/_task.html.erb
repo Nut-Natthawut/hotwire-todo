@@ -1,19 +1,24 @@
 <%# Each row is its own frame (<turbo-frame id="task_1">): Edit loads the form into this row only. %>
 <%= turbo_frame_tag dom_id(task) do %>
-  <div class="flex items-center gap-3 py-2">
+  <div class="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-3 hover:bg-gray-50">
     <%# Round button: PATCH /tasks/:id with task[status] = next status (todo → doing → done → todo). %>
     <%= button_to task_path(task), method: :patch,
           params: { task: { status: task.next_status } },
-          class: "cursor-pointer", title: "Mark as #{task.next_status.humanize}" do %>
+          class: "flex cursor-pointer", title: "Mark as #{task.next_status.humanize}" do %>
       <%= status_icon(task) %>
     <% end %>
-    <span class="flex-1 text-lg <%= "line-through" if task.done? %>"><%= task.title %></span>
-    <%= status_pill(task) %>
 
-    <%= link_to "Edit", edit_task_path(task), class: "text-sm underline" %>
-    <%# _top: the deleted row won't exist in the response, so update the whole page instead of this frame. %>
-    <%= button_to "Delete", task_path(task), method: :delete,
-          class: "cursor-pointer text-sm text-red-600",
-          form: { data: { turbo_confirm: "Delete \"#{task.title}\"?", turbo_frame: "_top" } } %>
+    <span class="flex-1 text-lg <%= task.done? ? "text-gray-400 line-through" : "text-gray-900" %>"><%= task.title %></span>
+
+    <%# Edit / Delete stay quiet until the row is hovered or focused (always shown on small screens). %>
+    <div class="flex items-center gap-3 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+      <%= link_to "Edit", edit_task_path(task), class: "text-sm text-gray-500 hover:text-gray-900" %>
+      <%# _top: the deleted row won't exist in the response, so update the whole page instead of this frame. %>
+      <%= button_to "Delete", task_path(task), method: :delete,
+            class: "cursor-pointer text-sm text-gray-500 hover:text-red-600",
+            form: { data: { turbo_confirm: "Delete \"#{task.title}\"?", turbo_frame: "_top" } } %>
+    </div>
+
+    <%= status_pill(task) %>
   </div>
 <% end %>

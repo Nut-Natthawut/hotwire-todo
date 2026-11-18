@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
+/* Tailwind v4 borders default to the text colour (black). Use a soft gray everywhere instead. */
+@layer base {
+  *, ::before, ::after { border-color: var(--color-gray-200); }
+}
+
 @layer components {
-  .btn        { @apply inline-flex cursor-pointer items-center rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-gray-50; }
-  .pill       { @apply rounded-full px-3 py-1 text-sm; }
-  .form-label { @apply mb-1 block text-sm; }
-  .form-input { @apply block w-full rounded-lg border px-3 py-2 text-sm; }
+  .btn         { @apply inline-flex cursor-pointer items-center gap-1 rounded-lg border bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50; }
+  .btn-primary { @apply inline-flex cursor-pointer items-center gap-1 rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700; }
+  .pill        { @apply rounded-full px-3 py-1 text-sm font-medium; }
+  .form-label  { @apply mb-1 block text-sm font-medium text-gray-700; }
+  .form-input  { @apply block w-full rounded-lg border bg-white px-3 py-2 text-sm focus:border-gray-400 focus:outline-none; }
 
   /* Rails wraps invalid fields in this div; keep layout intact. */
   .field_with_errors { display: contents; }

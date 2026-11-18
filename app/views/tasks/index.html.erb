@@ -3,23 +3,23 @@
 <%# Subscribe to the "tasks" stream: Task broadcasts a refresh here whenever a task changes. %>
 <%= turbo_stream_from "tasks" %>
 
-<div class="rounded-2xl border bg-white p-6">
-  <p class="text-lg font-medium">Todo Management UI</p>
+<div class="rounded-2xl border bg-white p-6 shadow-sm">
+  <p class="text-sm font-medium tracking-wide text-gray-500 uppercase">Todo Management UI</p>
 
   <div id="task_summary"><%= render partial: "tasks/summary" %></div>
 
   <hr class="my-6">
 
   <div class="mb-3 flex items-center justify-between">
-    <h3 class="text-lg font-medium">Task List</h3>
+    <h3 class="text-lg font-semibold">Task List</h3>
     <%# Link is outside the frame but targets it: the form loads into "new_task" below. %>
-    <%= link_to "+ New task", new_task_path, class: "btn", data: { turbo_frame: "new_task" } %>
+    <%= link_to "+ New task", new_task_path, class: "btn-primary", data: { turbo_frame: "new_task" } %>
   </div>
 
-  <%# Empty until "+ New task" is clicked; new.html.erb fills it. %>
-  <%= turbo_frame_tag "new_task", class: "mb-4 block" %>
+  <%# Empty until "+ New task" is clicked; new.html.erb fills it. Hidden while empty. %>
+  <%= turbo_frame_tag "new_task", class: "mb-4 block rounded-xl border bg-gray-50 p-4 empty:hidden" %>
 
-  <div id="tasks" class="flex flex-col gap-1">
+  <div id="tasks" class="flex flex-col divide-y">
     <%# One app/views/tasks/_task.html.erb per task, each gets a local variable named "task". %>
     <%= render partial: "tasks/task", collection: @tasks, as: :task %>
   </div>
