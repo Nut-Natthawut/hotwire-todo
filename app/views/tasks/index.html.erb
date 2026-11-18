@@ -1,5 +1,8 @@
 <% content_for :title, "My Tasks" %>
 
+<%# Subscribe to the "tasks" stream: Task broadcasts a refresh here whenever a task changes. %>
+<%= turbo_stream_from "tasks" %>
+
 <div class="rounded-2xl border bg-white p-6">
   <p class="text-lg font-medium">Todo Management UI</p>
 
