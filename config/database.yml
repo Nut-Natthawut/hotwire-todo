@@ -4,25 +4,9 @@ default: &default
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 development:
-  primary:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    database: hotwire_development
-  cache:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    database: hotwire_development_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    database: hotwire_development_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    database: hotwire_development_cable
-    migrations_paths: db/cable_migrate
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+  database: hotwire_development
 
 test:
   <<: *default
@@ -30,18 +14,5 @@ test:
   database: hotwire_test
 
 production:
-  primary:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-  cache:
-    <<: *default
-    url: <%= ENV["CACHE_DATABASE_URL"] %>
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    url: <%= ENV["QUEUE_DATABASE_URL"] %>
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *default
-    url: <%= ENV["CABLE_DATABASE_URL"] %>
-    migrations_paths: db/cable_migrate
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>

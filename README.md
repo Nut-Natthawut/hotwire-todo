@@ -787,3 +787,34 @@ docker compose exec web bin/rubocop
 
 - ไล่ **✅ ตรวจผล** ทุก Step อีกรอบ
 - ไม่มี secret / รหัสผ่าน hardcode ในโค้ด (database ใช้ `DATABASE_URL` จาก `compose.yml`)
+
+---
+
+## Deploy บน Render (Blueprint)
+
+ไฟล์ `render.yaml` บอก Render ว่าต้องสร้างอะไรบ้าง กดครั้งเดียวได้ทั้ง database และเว็บ
+
+| สร้างอะไร | รายละเอียด |
+| --- | --- |
+| Postgres `hotwire-todo-db` | แบบฟรี, Singapore |
+| Web service `hotwire-todo` | build จาก `Dockerfile` (production), แบบฟรี, Singapore, branch `main` |
+
+**Environment variables (ตั้งให้อัตโนมัติ ไม่มี secret อยู่ในไฟล์)**
+
+| Key | มาจาก | ทำไม |
+| --- | --- | --- |
+| `DATABASE_URL` | database ที่ Blueprint สร้าง | database เดียวของแอป |
+| `SECRET_KEY_BASE` | Render สุ่มให้ (`generateValue`) | production ต้องมีกุญแจลับ (repo ไม่มี `master.key`) |
+| `SOLID_QUEUE_IN_PUMA` | `true` | บน Render ไม่มี process `worker` แยก ให้ Puma รัน job เอง (broadcast `_later` ใน Step 7) |
+| `PORT` | `80` | Dockerfile เปิด Thruster ที่ port 80 แล้ว Thruster รัน Puma ที่ 3000 อยู่ข้างหลัง |
+
+**Database เดียว:** ตาราง Solid Queue / Cache / Cable อยู่ใน database เดียวกับ `tasks` (migration `create_solid_tables`) ตามวิธี "Single database configuration" ของ Solid Queue เพราะ Render ฟรีให้ Postgres ได้ 1 ตัว
+
+**ขั้นตอน**
+
+1. Render → **New → Blueprint** → เลือก repo `hotwire-todo`, branch `main`
+2. กด **Deploy Blueprint** แล้วรอ build (ครั้งแรก 5–10 นาที)
+3. ตอน start `bin/docker-entrypoint` รัน `db:prepare` สร้างตารางให้เอง
+4. เปิด URL `https://hotwire-todo-xxxx.onrender.com` (database ใหม่ยังไม่มีงาน เพิ่มเองจากหน้าเว็บ)
+
+> **ข้อจำกัดแบบฟรี:** เว็บหลับเมื่อไม่มีคนใช้ (เปิดครั้งแรกรอประมาณ 1 นาที) และ Render ให้ Postgres ฟรีได้ 1 ตัวต่อ workspace
